@@ -22,6 +22,6 @@ toc
 save('rsltsameL1.mat','rslt');
 rmin = min(min(rslt));
 rmax = max(max(rslt));
-imshow(rslt,[rmin 12000]);  %阈值可调
+imshow(rslt,[rmin 12000]);  %可调
 
 end
