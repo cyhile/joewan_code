@@ -17,9 +17,12 @@ train_class_num = [ ...
 for i = 1:20
     set_name = sprintf('devel%02d', i);
     set_dir_path = [feature_dir '\' set_name '\MFSK'];
+    
+    %step 1:删除源特征里面的重复向量，并保存到新目录
     new_set_dir_path = [new_feature_dir '\' set_name];
     cydeleteduplicate(set_dir_path, new_set_dir_path);    %删除目录文件里的重复数据，并将结果保存在new path里面
     
+    %step 2:保存所有训练样本特征
     set_all_train_feature_dir = [all_train_feature_dir '\' set_name];
     dir_exist = exist(set_all_train_feature_dir, 'dir');    %得到每个集合所有的训练特征（就可以用于聚类
     if ~dir_exist
@@ -34,13 +37,15 @@ for i = 1:20
         all_train_feature_mat = csvread(all_train_feature_file);
     end
     
+    %step 2:聚类,会保存文件，因为使用integer聚类 所以特征向量所有值必须在0~255范围内
     cluster_file_path = [set_all_train_feature_dir '\cluster'];
     dir_exist = exist(cluster_file_path, 'dir');    %得到每个集合所有的训练特征（就可以用于聚类
     if ~dir_exist
         mkdir(cluster_file_path);
     end
     descr_max_num = max(max(all_train_feature_mat(:,1:1024)));
-    if(descr_max_num <= 255)
+    descr_min_num = min(min(all_train_feature_mat(:,1:1024)));
+    if(descr_max_num <= 255 && descr_min_num >= 0)
         cluster_center_file_name = sprintf('%.3fcluster_ratio_center_file.csv', cluster_ratio);
         descr_center_list_file_name = sprintf('%.3fcluster_ratio_list_file.csv', cluster_ratio);
         cluster_center_file = [cluster_file_path '\' cluster_center_file_name];
@@ -59,7 +64,32 @@ for i = 1:20
         end
     else
         fprintf('%s is not process, because its descr_max_num is larger than 255!!!\r\n', set_name);
-        break;
+    end
+    
+    %step 3:生成cluster_vote{},这是每个类中心的投票信息
+    relative_pos = all_train_feature_mat(:, 1029:1031) - all_train_feature_mat(:, 1025:1027);
+    idx = all_train_feature_mat(:, 1028);   %[descr(1~1024) location(1025~1027) idx(label 1028) center(1029~1031)]
+    [cluster_center_num, ~] = size(cluster_center);
+    cluster_vote = cell(cluster_center_num, 1);
+    for j = 1:length(descr_center_list)
+        cluster_vote{descr_center_list(j)} = [cluster_vote{descr_center_list(j)}; relative_pos(j, :) idx(j)];
+    end
+    
+    %step 4:获取输入样本 set_name sample_name -> [id subid]，然后计算vote_space
+    sample_dir = dir(new_set_dir_path);
+    [n, ~] = size(sample_dir);
+    for j=1:n   %sample循环
+        input_sample_idx_mat = get_str_num_mat(sample_dir(j).name);
+        if(length(input_sample_idx_mat) == 1 && input_sample_idx_mat > 10)
+            input_sample_idx_mat = [input_sample_idx_mat 1];
+        end
+        if(length(input_sample_idx_mat) == 2 && input_sample_idx_mat(1) > 10)
+            input_feat_mat = csvread([new_set_dir_path '\' sample_dir(j).name]);
+            %计算vote_space
+            vote_space = cygetvotespace(root_dir, set_name, sample_dir(j).name, input_feat_mat, cluster_center, cluster_vote);
+            %分析vote space
+            %cyanalysisvotespace(vote_space);
+        end
     end
     
 end
