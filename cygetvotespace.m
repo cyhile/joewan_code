@@ -1,4 +1,4 @@
-function vote_space = cygetvotespace(root_dir, set_name, sample_name, input_feat_mat, cluster_center, cluster_vote)
+function idx_vote_space = cygetvotespace(root_dir, set_name, sample_name, input_feat_mat, cluster_center, cluster_vote)
 
 %1、计算sample [center_id loacation]
 sample_center_dir = [root_dir '\cysample_center\' set_name];
@@ -8,7 +8,7 @@ if ~dir_exist
 end
 global cluster_ratio;
 file_exist = exist([sample_center_dir '\' num2str(cluster_ratio) sample_name], 'file');
-if ~file_exist      %注意 这里如果cluster_ratio改变了之后，重置
+if ~file_exist
     tic;
     sample_max_num = max(max(input_feat_mat(:,4:1027)));
     sample_min_num = min(min(input_feat_mat(:,4:1027)));
@@ -55,13 +55,10 @@ end
 vote_space = sortrows(vote_space, 5); 
 
 idx_num = max(vote_space(:, 5));
-
 idx_vote_space = cell(idx_num, 1);
-
 for i = 1:idx_num
     row_index = vote_space(:,5) == i;
     idx_vote_space{i} = vote_space(row_index, 1:4);
 end
-
 end
     

@@ -78,6 +78,7 @@ for i = 1:20
     %step 4:获取输入样本 set_name sample_name -> [id subid]，然后计算vote_space
     sample_dir = dir(new_set_dir_path);
     [n, ~] = size(sample_dir);
+    rslt = struct([]);
     for j=1:n   %sample循环
         input_sample_idx_mat = get_str_num_mat(sample_dir(j).name);
         if(length(input_sample_idx_mat) == 1 && input_sample_idx_mat > 10)
@@ -86,9 +87,14 @@ for i = 1:20
         if(length(input_sample_idx_mat) == 2 && input_sample_idx_mat(1) > 10)
             input_feat_mat = csvread([new_set_dir_path '\' sample_dir(j).name]);
             %计算vote_space
-            vote_space = cygetvotespace(root_dir, set_name, sample_dir(j).name, input_feat_mat, cluster_center, cluster_vote);
-            %分析vote space
-            %cyanalysisvotespace(vote_space);
+            idx_vote_space = cygetvotespace(root_dir, set_name, sample_dir(j).name, input_feat_mat, cluster_center, cluster_vote);
+            %分析vote space most_center(1,5)就是结果
+            most_center = cyanalysisvotespace(idx_vote_space);
+            if ~isempty(most_center)
+                rslt_elemt.input_sample_idx = input_sample_idx_mat;
+                rslt_elemt.result_idx = most_center(1,5);
+                rslt = [rslt rslt_elemt];
+            end
         end
     end
     

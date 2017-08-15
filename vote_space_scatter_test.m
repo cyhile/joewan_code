@@ -1,10 +1,12 @@
 %vote_space scatter 脚本
 clear all;
-load('matlab.mat');
-tic;
+load('idx.mat');
+
 center_num = 30;    %参数1 聚类中心 可调
 area_range_t = [6 35 35] ./ 3;   %参数2 中心大小，可调
-i = 10;
+i = 3;
+
+tic;
 one_vote_space = idx_vote_space{i};
 test_data = one_vote_space(:,1:3);
 test_data = test_data';
@@ -36,19 +38,18 @@ for j = 1:center_num
     end
 end
 [center_weight_save_sort, sort_idx] = sortrows(center_weight_save, -4);
-center_weight_save_sort = center_weight_save_sort(1, :);
-%sort_idx = sort_idx(1:3);
-point_save_sort = points_save(sort_idx);
+most_center = center_weight_save_sort(1, :);
+most_center_points = points_save{sort_idx(1)};
 
-    
-    
-    
-    
-    scatter3(one_vote_space(:,1),one_vote_space(:,2),one_vote_space(:,3),5, 'k' ,'filled');
-    hold on;
-    scatter3(point_save_sort{1}(:,1),point_save_sort{1}(:,2),point_save_sort{1}(:,3),5, 'r' ,'filled');
-    %scatter3(point_save_sort{2}(:,1),point_save_sort{2}(:,2),point_save_sort{2}(:,3),5, 'g' ,'filled');
-    %scatter3(point_save_sort{3}(:,1),point_save_sort{3}(:,2),point_save_sort{3}(:,3),5, 'b' ,'filled');
-    %scatter3(19.5, 106, 106, 5,'r','filled');
-    %scatter3(tc(:,1),tc(:,2),tc(:,3),10,'r','filled');
-    toc
+
+
+
+
+scatter3(one_vote_space(:,1),one_vote_space(:,2),one_vote_space(:,3),5, 'k' ,'filled');
+hold on;
+scatter3(most_center_points(:,1),most_center_points(:,2),most_center_points(:,3),5, 'r' ,'filled');
+%scatter3(point_save_sort{2}(:,1),point_save_sort{2}(:,2),point_save_sort{2}(:,3),5, 'g' ,'filled');
+%scatter3(point_save_sort{3}(:,1),point_save_sort{3}(:,2),point_save_sort{3}(:,3),5, 'b' ,'filled');
+%scatter3(19.5, 106, 106, 5,'r','filled');
+%scatter3(tc(:,1),tc(:,2),tc(:,3),10,'r','filled');
+toc
