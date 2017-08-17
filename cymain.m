@@ -1,18 +1,12 @@
 %%最终跑的程序，跑完devel1~20
 %输入devel1~20，输出devel1~20_predict.xlsx
 
-function cymain()
+function avg_accu = cymain()
 root_dir = 'D:\Action Recognition\MoSIFT code & ConGD';
 feature_dir = [root_dir '\tmpfeature_results'];
 new_feature_dir = [root_dir '\cyfeature_result'];
 all_train_feature_dir = [root_dir  '\cyallfeature'];
 global cluster_ratio;
-
-train_class_num = [ ...
-    10  10  8   10  8   ...
-    11  9   11  9   9  ...
-    8   11  12  8   8  ...
-    13  8   10  9   9  ];
 
 for i = 1:20
     set_name = sprintf('devel%02d', i);
@@ -28,14 +22,21 @@ for i = 1:20
     if ~dir_exist
         mkdir(set_all_train_feature_dir);
     end
+    train_label = read_file([root_dir '\CGD\' set_name '\' set_name '_train.csv']);
+    train_class_num = length(train_label);
     all_train_feature_file = [set_all_train_feature_dir '\' set_name '_allfeature.csv'];
     file_exist = exist(all_train_feature_file, 'file');    %判断文件是否存在
     if ~file_exist
-        all_train_feature_mat = cygetalltrainfea(new_set_dir_path, train_class_num(i));
+        all_train_feature_mat = cygetalltrainfea(new_set_dir_path, train_class_num);
         csvwrite(all_train_feature_file, all_train_feature_mat);
     else
         all_train_feature_mat = csvread(all_train_feature_file);
+        train_class_num__ = max(all_train_feature_mat(:,1028));
+        if train_class_num__ ~= train_class_num
+            fprintf('%s all feature is error !!!!!\r\n', set_name);
+        end
     end
+%     continue;
     
     %step 2:聚类,会保存文件，因为使用integer聚类 所以特征向量所有值必须在0~255范围内
     cluster_file_path = [set_all_train_feature_dir '\cluster'];
@@ -81,10 +82,10 @@ for i = 1:20
     rslt = struct([]);
     for j=1:n   %sample循环
         input_sample_idx_mat = get_str_num_mat(sample_dir(j).name);
-        if(length(input_sample_idx_mat) == 1 && input_sample_idx_mat > 10)
+        if(length(input_sample_idx_mat) == 1 && input_sample_idx_mat > train_class_num)
             input_sample_idx_mat = [input_sample_idx_mat 1];
         end
-        if(length(input_sample_idx_mat) == 2 && input_sample_idx_mat(1) > 10)
+        if(length(input_sample_idx_mat) == 2 && input_sample_idx_mat(1) > train_class_num)
             input_feat_mat = csvread([new_set_dir_path '\' sample_dir(j).name]);
             %计算vote_space
             idx_vote_space = cygetvotespace(root_dir, set_name, sample_dir(j).name, input_feat_mat, cluster_center, cluster_vote);
@@ -97,10 +98,17 @@ for i = 1:20
             end
         end
     end
+    [final_accu(i), right_cnt, false_cnt] = cyrsltann(rslt, root_dir, set_name);
     
+    dir_exist = exist([root_dir '\cyfinal_accu'], 'dir');    %得到每个集合所有的训练特征（就可以用于聚类
+    if ~dir_exist
+        mkdir([root_dir '\cyfinal_accu']);
+    end
+    fid = fopen([root_dir '\cyfinal_accu\' num2str(cluster_ratio) 'final_accu.csv'],'a');
+    fprintf(fid, '%s,%f\r\n', set_name, final_accu(i));
+    fclose(fid);
 end
 
+avg_accu = mean(final_accu);
 
-%cytrain(set_dir_path, set_name);    %得出训练样本特征数据结构，并保存
-%cymain(set_dir_path, set_name);
 end

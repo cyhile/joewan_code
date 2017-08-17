@@ -29,7 +29,8 @@ for i = 1:length(idx_vote_space)    %分析投票空间每个label的投票
             if isempty(points)  %空点跳出
                 break;
             end
-            points_coor_new = sum(points(:, 1:3) .* repmat(points(:, 4), 1, 3)) ./ sum(points(:, 4));
+      
+            points_coor_new = sum(points(:, 1:3) .* repmat(points(:, 4), 1, 3), 1) ./ sum(points(:, 4));
             if all(points_coor_new == points_coor)  %搜索成功，保存数据，跳出
                 center_weight_save = [center_weight_save; points_coor sum(points(:, 4))];
                 points_save = [points_save; points];

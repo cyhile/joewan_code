@@ -13,11 +13,12 @@ if ~file_exist
     sample_max_num = max(max(input_feat_mat(:,4:1027)));
     sample_min_num = min(min(input_feat_mat(:,4:1027)));
     if(sample_max_num <= 255 && sample_min_num >= 0)
-        [n, ~] = size(input_feat_mat);
-        sample_center_id_location = zeros(n,1);
-        for i = 1:n
-            sample_center_id_location(i) = vl_ikmeanspush(uint8(input_feat_mat(i,4:1027)'), int32(cluster_center'));     %%计算sample_center_id
-        end
+%         [n, ~] = size(input_feat_mat);
+%         sample_center_id_location = zeros(n,1);
+%         for i = 1:n
+            sample_center_id_location = vl_ikmeanspush(uint8(input_feat_mat(:,4:1027)'), int32(cluster_center'));     %%计算sample_center_id
+            sample_center_id_location = double(sample_center_id_location');
+%         end
         sample_center_id_location = [sample_center_id_location input_feat_mat(:,1:3)];
         csvwrite([sample_center_dir '\' num2str(cluster_ratio) sample_name], sample_center_id_location);
     else
@@ -30,13 +31,13 @@ end
 
 %1、计算vote_space
 
-vote_space_dir = [root_dir '\cyvote_space_center\' set_name];
-dir_exist = exist(vote_space_dir, 'dir');
-if ~dir_exist
-    mkdir(vote_space_dir);
-end
-file_exist = exist([vote_space_dir '\' sample_name], 'file');
-if ~file_exist
+% vote_space_dir = [root_dir '\cyvote_space_center\' set_name];
+% dir_exist = exist(vote_space_dir, 'dir');
+% if ~dir_exist
+%     mkdir(vote_space_dir);
+% end
+% file_exist = exist([vote_space_dir '\' sample_name], 'file');
+% if ~file_exist
     vote_space = [];
     [n, ~] = size(sample_center_id_location);
     for i = 1:n     %每个样本的特征序号循环
@@ -50,8 +51,8 @@ if ~file_exist
         end
         vote_space = [vote_space; vote_space_tmp];
     end
-else
-end
+% else
+% end
 vote_space = sortrows(vote_space, 5); 
 
 idx_num = max(vote_space(:, 5));
