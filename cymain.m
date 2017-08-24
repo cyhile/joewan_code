@@ -95,6 +95,10 @@ for i = 1:20
                 rslt_elemt.input_sample_idx = input_sample_idx_mat;
                 rslt_elemt.result_idx = most_center(1,5);
                 rslt = [rslt rslt_elemt];
+            else
+                rslt_elemt.input_sample_idx = 1;
+                rslt_elemt.result_idx = 1;
+                rslt = [rslt rslt_elemt];
             end
         end
     end

@@ -18,10 +18,12 @@ for i = 1:length(idx_vote_space)    %分析投票空间每个label的投票
     
     points_save = cell({});
     center_weight_save = [];
+    
     for j = 1:center_num
         points_coor = tc(j, 1:3);
         [n, ~] = size(one_vote_space);
-        while 1
+        save_item = [];
+        for k = 1:100
             tmp_a = one_vote_space(:, 1:3) <= repmat(points_coor + area_range_t, n, 1);
             tmp_b = one_vote_space(:, 1:3) >= repmat(points_coor - area_range_t, n, 1);
             points_idx = all([tmp_a tmp_b], 2);
@@ -29,10 +31,15 @@ for i = 1:length(idx_vote_space)    %分析投票空间每个label的投票
             if isempty(points)  %空点跳出
                 break;
             end
-      
+            
+            %这里是为了优化搜索中心，测试
+            save_item = [save_item; points_coor sum(points(:, 4))];
+            
             points_coor_new = sum(points(:, 1:3) .* repmat(points(:, 4), 1, 3), 1) ./ sum(points(:, 4));
             if all(points_coor_new == points_coor)  %搜索成功，保存数据，跳出
-                center_weight_save = [center_weight_save; points_coor sum(points(:, 4))];
+                [~,max_id] = max(save_item(:,4));
+                center_weight_save = [center_weight_save; save_item(max_id, :)];
+                %                 center_weight_save = [center_weight_save; points_coor sum(points(:, 4))];
                 points_save = [points_save; points];
                 break;
             else
@@ -40,13 +47,22 @@ for i = 1:length(idx_vote_space)    %分析投票空间每个label的投票
             end
         end
     end
+    if ~isempty(center_weight_save)
     [center_weight_save_sort, sort_idx] = sortrows(center_weight_save, -4);
     most_center = [most_center; center_weight_save_sort(1, :) i];
     %most_center_points{i} = points_save{sort_idx(1)};
+    end
 end
 
 if ~isempty(most_center)
     most_center = sortrows(most_center, -4);
+    
+%     %%test
+%     for i = 1:length(idx_vote_space)
+%         tmp(i) = length(idx_vote_space{i});
+%     end
+%     [~, idx] = max(tmp);
+%     most_center(1,5) = idx;
 end
 
 end
